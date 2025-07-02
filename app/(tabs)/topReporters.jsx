@@ -1,7 +1,7 @@
   import { View, Text, FlatList, StyleSheet, ActivityIndicator, Image } from 'react-native';
   import React, { useEffect, useState } from 'react';
   import { API_URL } from '../../constants/api';
-  import { useAuthStore } from '../../store/authStore';
+import useAuthStore from '../../store/authStore';
   import COLORS from '../../constants/colors';
   import { getImageUrl } from '../../lib/utils';
   import styles from '../../assets/styles/topReporters.styles';

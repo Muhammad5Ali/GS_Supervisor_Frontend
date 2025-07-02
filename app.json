@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+     "scheme": "greensnap",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -58,7 +58,8 @@
           "photosPermission": "Allow app to access your photos",
           "cameraPermission": "Allow app to access your camera"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

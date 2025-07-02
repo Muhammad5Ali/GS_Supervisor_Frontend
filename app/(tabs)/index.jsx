@@ -1,19 +1,18 @@
-
-import { View, Text,FlatList, ActivityIndicator, RefreshControl} from 'react-native';
-import { useEffect, useState } from 'react';
-import { useAuthStore } from '../../store/authStore'; //import the auth store
+import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { useEffect, useState, useCallback, useRef, memo } from 'react';
+import useAuthStore from '../../store/authStore';
 import styles from '../../assets/styles/home.styles';
 import { API_URL } from '../../constants/api';
-import { formatPublishDate } from '../../lib/utils';
+import { formatPublishDate, getImageUrl } from '../../lib/utils';
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image'; //expo-image is used to load the images
+import { Image } from 'expo-image';
 import COLORS from '../../constants/colors';
-import Loader from '../../components/Loader'; //import the loader component
+import { Alert } from 'react-native';
+import { router } from 'expo-router';
+import { isJwtExpired } from '../../lib/jwtUtils';
+import { useFocusEffect } from 'expo-router';
 
-// Add helper import
-import { getImageUrl } from '../../lib/utils';
-
-const HeaderWithIcon = () => (
+const HeaderWithIcon = memo(() => (
   <View style={styles.header}>
     <View style={styles.headerTitleContainer}>
       <Text style={styles.headerTitle}>GreenSnap</Text>
@@ -26,146 +25,249 @@ const HeaderWithIcon = () => (
     </View>
     <Text style={styles.headerSubtitle}>Explore the latest reports shared by our community</Text>
   </View>
-);
+));
 
-//arrow function that will add some delays even for the bad internt connection
- export const sleep=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
-export default function Home() {
-  const {token}=useAuthStore();
-  const [reports,setReports]=useState([]); //state to hold the reports
-  const [loading,setLoading]=useState(true); //state to hold the loading state if false
-  const [refreshing,setRefreshing]=useState(false); //state to hold the refreshing state
-  const [page,setPage]=useState(1); //state to hold the page number
-  const [hasMore,setHasMore]=useState(true); //state to hold if there are more reports to load
-
-
-  const fetchReports=async(pageNum=1,refresh=false)=>{
-  try {
-    if(refresh) setRefreshing(true);
-    else if(pageNum===1) setLoading(true);
-
-    const response= await fetch(`${API_URL}/report?page=${pageNum}&limit=2`,{
-      headers:{Authorization: `Bearer ${token}`},
-    });
-    const data=await response.json();
-    if(!response.ok) throw new Error(data.message || "Failed to fetch reports");
-    //todo fix it as for some cases it will cause the duplication
-    //setReports((prevReports)=>[...prevReports,...data.reports]);
-    // To precautionly handles for the case of duplicate reports
-    const uniqueReports =
-    refresh || pageNum === 1
-    ? data.reports
-    :Array.from(new Set([...reports,...data.reports].map(report => report._id)))
-      .map((id) =>[...reports,...data.reports].find((report) => report._id === id));
-      setReports(uniqueReports);
-
-    // If current pages is less than total pg's than we have more to fetch
-    setHasMore(pageNum<data.totalPages);
-    setPage(pageNum);
-  } catch (error) {
-    console.log("Error fetching reports",error); 
-  } finally{
-    if(refresh){ 
-      await sleep(800);
-      setRefreshing(false);
-    }
-    else setLoading(false);
-  }
-
-
-  };
-  useEffect(()=>{
-   fetchReports();
-  },[]);
-
-  const handleLoadMore=async()=>{
-    if(hasMore && !loading && !refreshing){
-      //we comment it out as not a good solution in real world application
-      //await sleep(1000);
-      await fetchReports(page+1);
-    }
-  }
-
-  // Item is here every single report that we got in the array
-  const renderItem=({item})=>(
-  <View style={styles.reportCard}>
-    <View style={styles.reportHeader}>
-      <View style={styles.userInfo}>
-    {/* <Image source={{uri:item.user.profileImage}} style={styles.avatar}/> */}
-    <Image 
-    source={{ uri: getImageUrl(item.user.profileImage) }} 
-    style={styles.avatar}
-    onError={(e) => console.log("Avatar load error:", e.nativeEvent.error)}
-  />
-    <Text style={styles.username}>{item.user.username}</Text>
-      </View>
-    </View>
-    <View style={styles.reportImageContainer}>
-      {/* <Image source={{uri:item.image}} style={styles.reportImage} contentFit="cover"/> */}
-       <Image 
-    source={{ uri: getImageUrl(item.image) }} 
-    style={styles.reportImage}
-    onError={(e) => console.log("Report image error:", e.nativeEvent.error)}
-  />
-    </View>
-    <View style={styles.reportDetails}>
-      <Text style={styles.reportTitle}>{item.title}</Text>
-      <Text style={styles.reportDetails}>{item.details}</Text>
-      <Text style={styles.date}>Shared on {formatPublishDate(item.createdAt)}</Text>
-    </View>
-    </View>
-  )
-//console.log(reports);
-if (loading) return <Loader />
-  
-    
+const ReportCard = memo(({ item }) => {
+  const user = item.user || { username: "Unknown", profileImage: null };
   
   return (
-    <View style={styles.container}>
-      {/* We use flatlist here becz we wanna render some data */}
-      <FlatList
-      
-       data={reports}
-       renderItem={renderItem}
-       keyExtractor={(item)=>item._id}
-       contentContainerStyle={styles.listContainer}
-       showsVerticalScrollIndicator={false}
-       refreshControl={
-        <RefreshControl
-         refreshing={refreshing}
-         onRefresh={()=>fetchReports(1,true)}
-         tintColor={COLORS.primary}
-        />
-       }
-       onEndReached={handleLoadMore}
-       onEndReachedThreshold={0.1} // Trigger load more when 10% from the end is reached
-      //  ListHeaderComponent={
-      //   <View style={styles.header}>
-      //     <Text style={styles.headerTitle}>GreenSnap</Text>
-      //     <Text style={styles.headerSubtitle}>Explore the latest reports shared by our community</Text>
-      //   </View>
-      //  }
-      ListHeaderComponent={<HeaderWithIcon />}
-        // ListFooterComponent={
-        //   hasMore && !loading ? (
-        //     <View style={styles.footer}>
-        //       <Text style={styles.footerText}>Loading more reports...</Text>
-        //     </View>
-        //   ) : null
-        // }
-        ListFooterComponent={
-          hasMore && reports.length > 0 ? (
-            <ActivityIndicator style={styles.footerLoader} size="small" color={COLORS.primary}/>
-          ) :null
-        }
-       ListEmptyComponent={
-        <View style={styles.emptyContainer}>
-          <Ionicons name="trash-sharp" size={60} color={COLORS.textSecondary} />
-          <Text style={styles.emptyText}>No reports found</Text>
-          <Text style={styles.emptySubtext}>Be the first to share a report</Text>
-
+    <View style={styles.reportCard}>
+      <View style={styles.reportHeader}>
+        <View style={styles.userInfo}>
+          {user.profileImage && (
+            <Image 
+              source={{ uri: getImageUrl(user.profileImage) }} 
+              style={styles.avatar}
+              onError={(e) => console.log("Avatar error:", e.nativeEvent.error)}
+            />
+          )}
+          <Text style={styles.username}>{user.username}</Text>
         </View>
-       }
+      </View>
+      <View style={styles.reportImageContainer}>
+        {item.image && (
+          <Image 
+            source={{ uri: getImageUrl(item.image) }} 
+            style={styles.reportImage}
+            onError={(e) => console.log("Image error:", e.nativeEvent.error)}
+          />
+        )}
+      </View>
+      <View style={styles.reportDetails}>
+        <Text style={styles.reportTitle}>{item.title}</Text>
+        <Text style={styles.reportDetails}>{item.details}</Text>
+        <Text style={styles.date}>Shared on {formatPublishDate(item.createdAt)}</Text>
+      </View>
+    </View>
+  );
+});
+
+export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export default function Home() {
+  const { isCheckingAuth, user, token } = useAuthStore();
+  const [reports, setReports] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
+  const [rateLimited, setRateLimited] = useState(false);
+  const lastFetchTime = useRef(0);
+  const isMounted = useRef(true);
+  const retryCount = useRef(0); // Track retry attempts
+
+  const fetchReports = useCallback(async (pageNum = 1, refresh = false) => {
+    const now = Date.now();
+    if (now - lastFetchTime.current < 1000) {
+      return;
+    }
+    
+    lastFetchTime.current = now;
+    setIsFetching(true);
+    
+    if (!token || isJwtExpired(token)) {
+      console.warn("Token expired or invalid - logging out");
+      Alert.alert("Session Expired", "Your session has expired. Please login again.");
+      await useAuthStore.getState().logout();
+      router.replace('/login');
+      setIsFetching(false);
+      return;
+    }
+
+    try {
+      if (refresh) setRefreshing(true);
+
+      const response = await fetch(`${API_URL}/report?page=${pageNum}&limit=2`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          const retryAfter = parseInt(response.headers.get('Retry-After') || '10', 10);
+          
+          // Implement exponential backoff
+          const backoffTime = Math.min(30000, Math.pow(2, retryCount.current) * 1000);
+          retryCount.current++;
+          
+          console.warn(`Rate limited. Retrying in ${backoffTime/1000} seconds`);
+          setRateLimited(true);
+          await sleep(backoffTime);
+          return fetchReports(pageNum, refresh);
+        }
+        
+        if (response.status === 401) {
+          console.warn("Token rejected by server");
+          await useAuthStore.getState().logout();
+          router.replace("/login");
+          return;
+        }
+        
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Reset retry counter on successful request
+      retryCount.current = 0;
+      setRateLimited(false);
+
+      const data = await response.json();
+
+      if (!data.reports || !Array.isArray(data.reports)) {
+        console.error("Invalid response format:", data);
+        throw new Error("Invalid reports data format");
+      }
+
+      setReports(prev => {
+        if (refresh || pageNum === 1) {
+          return data.reports;
+        }
+        
+        // Merge and deduplicate reports
+        const existingIds = new Set(prev.map(r => r._id));
+        const newReports = data.reports.filter(r => !existingIds.has(r._id));
+        return [...prev, ...newReports];
+      });
+      
+      setHasMore(pageNum < data.totalPages);
+      setPage(pageNum);
+    } catch (error) {
+      console.error("Error fetching reports:", error.message);
+      
+      if (!error.message.includes('HTTP 429')) {
+        Alert.alert(
+          "Error", 
+          "Failed to load reports. Please try again.",
+          [{ text: "OK", onPress: () => setRateLimited(false) }]
+        );
+      }
+    } finally {
+      setIsFetching(false);
+      if (refresh) setRefreshing(false);
+    }
+  }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      isMounted.current = true;
+      
+      if (user && token && reports.length === 0) {
+        fetchReports();
+      }
+
+      return () => {
+        isMounted.current = false;
+      };
+    }, [user, token, fetchReports, reports.length])
+  );
+
+  // Memoized render function for FlatList
+  const renderItem = useCallback(({ item }) => (
+    <ReportCard item={item} />
+  ), []);
+
+  // Memoized key extractor
+  const keyExtractor = useCallback((item) => item._id, []);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !isFetching && !refreshing && !rateLimited) {
+      fetchReports(page + 1);
+    }
+  }, [hasMore, isFetching, refreshing, page, fetchReports, rateLimited]);
+
+  if (isCheckingAuth || (isFetching && reports.length === 0)) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+        {rateLimited && (
+          <Text style={{ marginTop: 10, color: COLORS.warning }}>
+            Rate limited, retrying...
+          </Text>
+        )}
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>User not authenticated. Please login.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={reports}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              retryCount.current = 0;
+              fetchReports(1, true);
+            }}
+            tintColor={COLORS.primary}
+            enabled={!rateLimited}
+          />
+        }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={<HeaderWithIcon />}
+        ListFooterComponent={
+          hasMore && reports.length > 0 && !refreshing ? (
+            <View style={styles.footerContainer}>
+              <ActivityIndicator size="small" color={COLORS.primary} />
+              {rateLimited && (
+                <Text style={styles.rateLimitText}>
+                  Rate limited, retrying in {Math.pow(2, retryCount.current)} seconds...
+                </Text>
+              )}
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          !isFetching && (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="trash-sharp" size={60} color={COLORS.textSecondary} />
+              <Text style={styles.emptyText}>No reports found</Text>
+              <Text style={styles.emptySubtext}>Be the first to share a report</Text>
+              {rateLimited && (
+                <Text style={[styles.emptySubtext, { color: COLORS.warning, marginTop: 10 }]}>
+                  Server is busy, please try again later
+                </Text>
+              )}
+            </View>
+          )
+        }
+        // Performance optimizations
+        initialNumToRender={2}
+        maxToRenderPerBatch={2}
+        updateCellsBatchingPeriod={100}
+        windowSize={5}
+        removeClippedSubviews={true}
       />
     </View>
   );

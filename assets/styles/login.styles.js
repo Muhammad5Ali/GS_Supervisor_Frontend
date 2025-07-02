@@ -114,6 +114,17 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: "600",
   },
+  // Add these to your existing styles
+forgotPassword: {
+  alignSelf: 'flex-end',
+  marginTop: 10,
+  marginBottom: 20, // Add some space before the login button
+},
+forgotText: {
+  color: COLORS.primary,
+  fontWeight: '500',
+  fontSize: 14,
+},
 });
 
 export default styles;

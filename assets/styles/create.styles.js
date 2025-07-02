@@ -158,6 +158,124 @@ coordinatesText: {
   buttonIcon: {
     marginRight: 8,
   },
+  imagePreviewContainer: {
+  position: 'relative',
+  borderRadius: 10,
+  overflow: 'hidden',
+},
+validationOverlay: {
+  ...StyleSheet.absoluteFillObject,
+  backgroundColor: 'rgba(0,0,0,0.5)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+invalidOverlay: {
+  backgroundColor: 'rgba(220,50,50,0.7)',
+},
+validationText: {
+  color: COLORS.white,
+  marginTop: 8,
+  fontWeight: 'bold',
+},
+errorText: {
+  color: COLORS.error, // Make sure this is defined in your colors
+  marginTop: 8,
+  textAlign: 'center',
+  fontSize: 14,
+},
+validationOverlay: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0,0,0,0.7)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  borderRadius: 8,
+},
+locationHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 5
+},
+photoHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 5
+},
+refreshLink: {
+  color: COLORS.primary,
+  fontSize: 14,
+  fontWeight: '500'
+},
+charCounter: {
+  textAlign: 'right',
+  fontSize: 12,
+  color: COLORS.textSecondary,
+  marginTop: 4
+},
+verifyingText: {
+  textAlign: 'center',
+  color: COLORS.warning || COLORS.primary,
+  fontStyle: 'italic',
+  marginVertical: 10,
+},
+validationText: {
+  color: COLORS.white,
+  marginTop: 8,
+  fontWeight: 'bold',
+},
+imagePreviewContainer: {
+  position: 'relative',
+  width: '100%',
+  height: 200,
+},
+verificationContainer: {
+  padding: 10,
+  borderRadius: 8,
+  marginVertical: 10,
+  alignItems: 'center'
+},
+classificationBadge: {
+  position: 'absolute',
+  bottom: 10,
+  left: 10,
+  right: 10,
+  backgroundColor: 'rgba(0,0,0,0.7)',
+  padding: 8,
+  borderRadius: 8,
+  flexDirection: 'row',
+  justifyContent: 'center',
+  alignItems: 'center'
+},
+badgeText: {
+  color: 'white',
+  fontWeight: 'bold',
+  marginRight: 5
+},
+instructionText: {
+  color: COLORS.textSecondary,
+  fontSize: 12,
+  textAlign: 'center',
+  marginTop: 10,
+  lineHeight: 16
+},
+verificationText: {
+  fontSize: 16,
+  fontWeight: 'bold'
+},
+verifiedSuccess: {
+  color: 'green'
+},
+verifiedWarning: {
+  color: 'orange'
+},
+verifiedError: {
+  color: 'red'
+},
 });
 
 export default styles;

@@ -1,28 +1,31 @@
-import { Slot, SplashScreen, Stack, useRouter, useSegments } from "expo-router";
+import { Slot, SplashScreen } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { useAuthStore } from "../store/authStore";
+import useAuthStore from '../store/authStore';
 import { useEffect, useState } from "react";
 import SafeScreen from "../components/SafeScreen";
 import { useFonts } from "expo-font";
+import { View, ActivityIndicator } from "react-native";
+import DeepLinkHandler from '../components/DeepLinkHandler';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const router = useRouter();
-  const segments = useSegments();
-  const { checkAuth, user, token } = useAuthStore();
+  const { checkAuth, isCheckingAuth } = useAuthStore();
   const [isReady, setIsReady] = useState(false);
 
-  const [fontLoaded]=useFonts({
+  const [fontLoaded] = useFonts({
     "JetBrainsMono-Medium": require("../assets/fonts/JetBrainsMono-Medium.ttf"),
-  })
+  });
+
+  // Hide splash screen when fonts are loaded
   useEffect(() => {
     if (fontLoaded) {
       SplashScreen.hideAsync();
     }
   }, [fontLoaded]);
 
+  // Initialize authentication state
   useEffect(() => {
     const init = async () => {
       await checkAuth();
@@ -30,33 +33,23 @@ export default function RootLayout() {
     };
     init();
   }, []);
- 
-  //handle navigation based on auth state
-  useEffect(() => {
-    if (!isReady) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
-    const isSignedIn = user && token;
+  // Show loading indicator while initializing
+  if (!fontLoaded || !isReady || isCheckingAuth) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
-    if (!isSignedIn && !inAuthGroup) {
-      router.replace("/(auth)");
-    } else if (isSignedIn && inAuthGroup) {
-      router.replace("/(tabs)");
-    }
-  }, [isReady, user, token, segments]);
-
-  // Render layout once auth status is known
-  if (!isReady) return null;
-
+  // Main layout with DeepLinkHandler and Slot
   return (
     <SafeAreaProvider>
-       <SafeScreen>
-      {/* <Slot /> */}
-      <Stack screenOptions={{headerShown:false}}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="(auth)" />
-      </Stack>
-      <StatusBar style="dark" />
+      <SafeScreen>
+        <StatusBar style="auto" />
+        <DeepLinkHandler />
+        <Slot />
       </SafeScreen>
     </SafeAreaProvider>
   );

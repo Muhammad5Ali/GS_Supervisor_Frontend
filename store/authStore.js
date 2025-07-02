@@ -1,95 +1,250 @@
-//GLOBAL STATE USING ZUSTAND
-import {create} from "zustand";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {API_URL} from "../constants/api"; // Import the API URL from the constants file
-// //import the api url from the constants file
+import { create } from "zustand";
+import * as SecureStore from "expo-secure-store";
+import { API_URL } from "../constants/api";
+import { decodeJwt, isJwtExpired } from "../lib/jwtUtils";
+import { router } from 'expo-router';
+import { logoutRedirect } from '../lib/navigationService';
 
+const TOKEN_KEY = "auth_token";
+const USER_KEY  = "auth_user";
 
-export const useAuthStore = create((set) => ({
-    user: null,
-    token: null,
-    isLoading: false,
-    //becz as soon as we start the application we wanna check for authentication
-    isCheckingAuth: true,
-  
-    register: async (username, email, password) => {
-      set({ isLoading: true });
-      try {
-        const response = await fetch(`${API_URL}/auth/register`, {
-         //const response = await fetch("https://react-native-wasteapp.onrender.com/api/auth/register", { 
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-            email,
-            password,
-          }),
-        });
-  
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || "Something went wrong!");
-        }
-        await AsyncStorage.setItem("user", JSON.stringify(data.user));
-        await AsyncStorage.setItem("token", data.token);
-        //isLoading is set to false after the data is fetched
-        set({ user: data.user, token: data.token, isLoading: false });
-        return{success:true}
+// Create the store without export keyword
+const useAuthStore = create((set, get) => ({
+  user: null,
+  token: null,
+  isLoading: false,
+  isCheckingAuth: true,
 
-  
-      } catch (error) {
-        set({ isLoading: false });
-        return{success:false,message:error.message};
+  register: async (username, email, password) => {
+    set({ isLoading: true });
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Registration failed");
+      return { success: true, email };
+    } catch (error) {
+      return { success: false, error: error.message };
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  verifyOTP: async (email, otp) => {
+    set({ isLoading: true });
+    try {
+      const response = await fetch(`${API_URL}/auth/verifyOTP`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+      
+      const data = await response.json();
+      return { success: !!data.success };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.message || 'Network error' 
+      };
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  resendOTP: async (email) => {
+  set({ isLoading: true });
+  try {
+    const response = await fetch(`${API_URL}/auth/resendOTP`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to resend OTP");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  } finally {
+    set({ isLoading: false });
+  }
+},
+
+  login: async (email, password) => {
+    set({ isLoading: true });
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { 
+          success: false, 
+          error: data.message || 'Login failed' 
+        };
       }
-    },
-    login:async(email,password)=>{  
-      set({ isLoading: true });
-      try {
-        //const response = await fetch("https://react-native-wasteapp.onrender.com/api/auth/login", { 
-         const response = await fetch(`${API_URL}/auth/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            password,
-          }),
-        });
-  
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || "Something went wrong!");
-        }
-        await AsyncStorage.setItem("user", JSON.stringify(data.user));
-        await AsyncStorage.setItem("token", data.token);
-        set({ user: data.user, token: data.token, isLoading: false });
-        return{success:true}
-      } catch (error) {
-        set({ isLoading: false });
-        return{success:false,message:error.message};
-      }   
 
-    },
-    checkAuth:async()=>{
-      try {
-        const token = await AsyncStorage.getItem("token");
-        const userJson = await AsyncStorage.getItem("user");
-        const user = userJson ? JSON.parse(userJson) : null;
-        set({ user, token });
-      } catch (error) {
-        console.log("Auth check failed",error);
+      if (data.token) {
+        const payload = decodeJwt(data.token);
+        
+        if (!payload.verified) {
+          router.push({
+            pathname: "/otp-verification",
+            params: { email }
+          });
+          return { 
+            success: false, 
+            error: 'Account not verified' 
+          };
+        }
+
+        const verifiedUser = {
+          ...data.user,
+          verified: payload.verified
+        };
+
+        await SecureStore.setItemAsync(TOKEN_KEY, data.token);
+        await SecureStore.setItemAsync(USER_KEY, JSON.stringify(verifiedUser));
+
+        set({
+          user: verifiedUser,
+          token: data.token,
+        });
+
+        return { success: true };
+      } else {
+        return { 
+          success: false, 
+          error: 'Authentication token missing' 
+        };
       }
-      finally{
-        set({ isCheckingAuth: false });
-       }
-    },
-    logout:async()=>{
-      await AsyncStorage.removeItem("token");
-      await AsyncStorage.removeItem("user");
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.message || 'Network error' 
+      };
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  checkAuth: async () => {
+    set({ isCheckingAuth: true });
+    try {
+      const [token, userJson] = await Promise.all([
+        SecureStore.getItemAsync(TOKEN_KEY),
+        SecureStore.getItemAsync(USER_KEY)
+      ]);
+      
+      if (!token || !userJson) {
+        set({ user: null, token: null });
+        return;
+      }
+
+      if (isJwtExpired(token)) {
+        console.warn("Token expired - clearing auth data");
+        await SecureStore.deleteItemAsync(TOKEN_KEY);
+        await SecureStore.deleteItemAsync(USER_KEY);
+        set({ user: null, token: null });
+        return;
+      }
+
+      const decoded = decodeJwt(token);
+      const user = JSON.parse(userJson);
+      
+      const updatedUser = {
+        ...user,
+        verified: decoded.verified
+      };
+
+      set({ user: updatedUser, token });
+
+    } catch (error) {
+      console.error("Auth check error:", error);
       set({ user: null, token: null });
-    },
-  }));
+    } finally {
+      set({ isCheckingAuth: false });
+    }
+  },
+
+  forgotPassword: async (email) => {
+    set({ isLoading: true });
+    try {
+      const response = await fetch(`${API_URL}/auth/password/forgot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Request failed");
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+ resetPassword: async (tokenParam, password, confirmPassword) => {
+  set({ isLoading: true });
+  try {
+    const response = await fetch(
+      `${API_URL}/auth/password/reset/${tokenParam}`, 
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, confirmPassword }),
+      }
+    );
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || "Password reset failed");
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.message || "Password reset failed" 
+    };
+  } finally {
+    set({ isLoading: false });
+  }
+},
+
+logout: async () => {
+  const { token } = get(); // Get current token from state
   
+  // Add token invalidation
+  try {
+    if (token) {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    }
+  } catch (error) {
+    console.log("Logout API error:", error);
+  }
+  
+  // Clear local storage
+  await SecureStore.deleteItemAsync(TOKEN_KEY);
+  await SecureStore.deleteItemAsync(USER_KEY);
+  
+  // Reset state
+  set({ user: null, token: null, isLoading: false });
+  
+  // Use Expo Router for redirect
+  router.replace('/(auth)');
+},
+
+}));
+
+// Export as default
+export default useAuthStore;

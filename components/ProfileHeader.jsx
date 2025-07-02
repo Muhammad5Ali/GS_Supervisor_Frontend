@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 import { Image } from "expo-image";
-import { useAuthStore } from '../store/authStore';
+import  useAuthStore from '../store/authStore';
 import styles from '../assets/styles/profile.styles';
 import { formatMemberSince } from '../lib/utils';
 import { getImageUrl } from '../lib/utils';

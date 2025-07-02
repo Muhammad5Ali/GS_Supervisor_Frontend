@@ -153,6 +153,17 @@ headerTitleContainer: {
   justifyContent: 'center', // Center horizontally
   marginBottom: 5,
 },
+// In home.styles.js
+rateLimitText: {
+  color: COLORS.warning,
+  textAlign: 'center',
+  marginTop: 8,
+  fontSize: 12,
+},
+footerContainer: {
+  paddingVertical: 20,
+  alignItems: 'center',
+},
 });
 
 export default styles;
