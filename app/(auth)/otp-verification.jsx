@@ -130,12 +130,13 @@ export default function OTPVerification() {
   styles.timerText,
   timer > 0 && timer < 60 && { 
     color: 'red', 
-    fontWeight: 'bold' 
+    fontWeight: 'bold',
+    fontSize: 16 // Make it more noticeable
   }
 ]}>
   {timer > 0 
     ? `OTP Expires in ${formatTime(timer)}` 
-    : "OTP expired"}
+    : "OTP expired. Tap 'Resend' to get a new code"}
 </Text>
 
       <TextInput

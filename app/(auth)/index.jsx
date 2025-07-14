@@ -1,10 +1,10 @@
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Platform, Alert } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from "../../assets/styles/login.styles";
 import { Image } from 'react-native';
 import COLORS from '../../constants/colors';
 import { Ionicons } from "@expo/vector-icons"
-import { Link, useRouter, useLocalSearchParams } from "expo-router"; // Added useLocalSearchParams
+import { useRouter } from "expo-router";
 import { KeyboardAvoidingView } from 'react-native';
 import useAuthStore from '../../store/authStore';
 
@@ -14,39 +14,51 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { isLoading, login, isCheckingAuth, user } = useAuthStore();
   const router = useRouter();
-  const params = useLocalSearchParams(); // Get route parameters
-
-  // Show logout confirmation message
+  const initialMount = useRef(true);
+  
+  // Show messages based on router params
   useEffect(() => {
-    if (params.logout) {
+    if (router.params?.logout) {
       Alert.alert("Logged Out", "You've been successfully logged out");
+      router.setParams({ logout: undefined });
     }
-  }, [params.logout]);
+  }, [router.params]);
 
-  // Handle navigation for already verified/logged in users
+  // Handle initial navigation for already verified/logged in users
   useEffect(() => {
-    // Check verification status from multiple possible properties
     const isVerified = user?.verified || user?.accountVerified;
     
-    if (user && isVerified) {
-      // Clear navigation history and refresh the tabs screen
-      router.replace({
-        pathname: "/(tabs)",
-        params: { refresh: Date.now() }
-      });
+    if (initialMount.current && user && isVerified) {
+      if (user.role === 'supervisor') {
+        router.replace('/supervisor-dashboard');
+      } else {
+        router.replace('/(tabs)');
+      }
     }
+    initialMount.current = false;
   }, [user]);
 
-  const handleLogin = async () => {
-    const result = await login(email, password);
-    
-    if (result.success) {
-      // Explicit navigation to home screen after successful login
-      // This will be handled by the useEffect above
+  // Add this to the handleLogin function:
+const handleLogin = async () => {
+  const result = await login(email, password);
+  
+  if (result.success) {
+    // Check if supervisor
+    if (result.user.role === 'supervisor') {
+      router.replace('/supervisor');
     } else {
-      Alert.alert("Error", result.error || "Invalid credentials");
+      router.replace('/(tabs)');
     }
-  };
+  } else if (result.requiresVerification) {
+    // Handle OTP verification flow
+    router.push({
+      pathname: "/otp-verification",
+      params: { email }
+    });
+  } else {
+    Alert.alert("Error", result.error || "Invalid credentials");
+  }
+};
 
   if (isCheckingAuth) {
     return (
@@ -150,11 +162,9 @@ export default function Login() {
             {/* SIGN UP LINK */}
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account?</Text>
-              <Link href="/signup" asChild>
-                <TouchableOpacity>
-                  <Text style={styles.link}> Sign Up</Text>
-                </TouchableOpacity>
-              </Link>
+              <TouchableOpacity onPress={() => router.push("/signup")}>
+                <Text style={styles.link}> Sign Up</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>

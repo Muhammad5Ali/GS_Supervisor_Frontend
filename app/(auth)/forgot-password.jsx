@@ -11,20 +11,20 @@ export default function ForgotPassword() {
   const router = useRouter();
 
   const Logo = () => (
-  <View style={styles.logoContainer}>
-    <View style={{
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: COLORS.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 15
-    }}>
-      <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 30 }}>GS</Text>
+    <View style={styles.logoContainer}>
+      <View style={{
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: COLORS.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 15
+      }}>
+        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 30 }}>GS</Text>
+      </View>
     </View>
-  </View>
-);
+  );
 
   const handleSubmit = async () => {
     if (!email.includes("@")) {
@@ -33,12 +33,16 @@ export default function ForgotPassword() {
     }
     
     const result = await forgotPassword(email);
+    
     if (result.success) {
-      Alert.alert(
-        "Email Sent", 
-        "Password reset instructions sent to your email",
-        [{ text: "OK", onPress: () => router.back() }]
-      );
+      // Navigate to OTP verification for password reset
+      router.push({
+        pathname: "/reset-otp-verification",
+        params: { 
+          email,
+          isReset: true  // Add flag to indicate password reset flow
+        }
+      });
     } else {
       Alert.alert("Error", result.error);
     }
@@ -46,7 +50,7 @@ export default function ForgotPassword() {
 
   return (
     <View style={styles.container}>
-        <Logo />
+      <Logo />
       <Text style={styles.title}>Forgot Password?</Text>
       <Text style={styles.subtitle}>
         Enter your email to receive password reset instructions

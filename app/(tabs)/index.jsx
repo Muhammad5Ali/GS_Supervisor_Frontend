@@ -30,6 +30,24 @@ const HeaderWithIcon = memo(() => (
 const ReportCard = memo(({ item }) => {
   const user = item.user || { username: "Unknown", profileImage: null };
   
+  // Function to get status color
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return COLORS.warning;
+      case 'in-progress': return COLORS.info;
+      case 'resolved': return COLORS.success;
+      default: return COLORS.gray;
+    }
+  };
+
+  // Function to format status text
+  const formatStatusText = (status) => {
+    switch (status) {
+      case 'in-progress': return 'In Progress';
+      default: return status;
+    }
+  };
+
   return (
     <View style={styles.reportCard}>
       <View style={styles.reportHeader}>
@@ -43,7 +61,17 @@ const ReportCard = memo(({ item }) => {
           )}
           <Text style={styles.username}>{user.username}</Text>
         </View>
+        
+        {/* Status Badge */}
+        {item.status && (
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+            <Text style={styles.statusBadgeText}>
+              {formatStatusText(item.status)}
+            </Text>
+          </View>
+        )}
       </View>
+      
       <View style={styles.reportImageContainer}>
         {item.image && (
           <Image 

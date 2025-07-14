@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import COLORS from '../../constants/colors';
+import COLORS from '../../constants/colors'; 
 
 export default StyleSheet.create({
   container: {
@@ -43,28 +43,32 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  resendButton: {
-    alignSelf: 'center',
-  },
-  resendText: {
-    color: COLORS.primary,
-    fontWeight: '500',
-  },
   timerText: {
     fontSize: 16,
     color: COLORS.textSecondary,
     marginBottom: 20,
     textAlign: 'center',
   },
-  resendButton: {
-    marginTop: 15,
+  cooldownText: {
+    color: COLORS.error,
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 10,
   },
-  disabledButton: {
-    opacity: 0.5,
+  // Updated resend button styles
+  resendButton: {
+    backgroundColor: COLORS.background,
+    padding: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    marginTop: 20,
+    alignItems: 'center',
   },
   resendText: {
     color: COLORS.primary,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });

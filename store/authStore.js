@@ -53,19 +53,49 @@ const useAuthStore = create((set, get) => ({
       set({ isLoading: false });
     }
   },
+  
   resendOTP: async (email) => {
+    set({ isLoading: true });
+    try {
+      const response = await fetch(`${API_URL}/auth/resendOTP`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to resend OTP");
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+ resendResetPasswordOTP: async (email) => {
   set({ isLoading: true });
   try {
-    const response = await fetch(`${API_URL}/auth/resendOTP`, {
+    const response = await fetch(`${API_URL}/auth/password/forgot`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
+    
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to resend OTP");
+    
+    if (!response.ok) {
+      return { 
+        success: false, 
+        error: data.message || "Failed to resend OTP" 
+      };
+    }
+    
     return { success: true };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error.message || "Network error" 
+    };
   } finally {
     set({ isLoading: false });
   }
@@ -92,19 +122,20 @@ const useAuthStore = create((set, get) => ({
         const payload = decodeJwt(data.token);
         
         if (!payload.verified) {
-          router.push({
-            pathname: "/otp-verification",
-            params: { email }
-          });
           return { 
             success: false, 
-            error: 'Account not verified' 
+            error: 'Account not verified',
+            requiresVerification: true,
+            email
           };
         }
 
+        // Add role with default fallback to 'user'
         const verifiedUser = {
           ...data.user,
-          verified: payload.verified
+          createdAt: data.user.createdAt,
+          verified: payload.verified,
+          role: data.user.role || 'user'
         };
 
         await SecureStore.setItemAsync(TOKEN_KEY, data.token);
@@ -115,7 +146,10 @@ const useAuthStore = create((set, get) => ({
           token: data.token,
         });
 
-        return { success: true };
+        return { 
+          success: true, 
+          user: verifiedUser
+        };
       } else {
         return { 
           success: false, 
@@ -158,6 +192,7 @@ const useAuthStore = create((set, get) => ({
       
       const updatedUser = {
         ...user,
+          createdAt: user.createdAt, 
         verified: decoded.verified
       };
 
@@ -179,8 +214,17 @@ const useAuthStore = create((set, get) => ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+      
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Request failed");
+      
+      // Ensure proper error handling
+      if (!response.ok) {
+        return { 
+          success: false, 
+          error: data.message || "Password reset request failed" 
+        };
+      }
+      
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
@@ -189,60 +233,104 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
- resetPassword: async (tokenParam, password, confirmPassword) => {
+ verifyResetOTP: async (email, otp) => {
   set({ isLoading: true });
   try {
-    const response = await fetch(
-      `${API_URL}/auth/password/reset/${tokenParam}`, 
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, confirmPassword }),
-      }
-    );
-
+    const response = await fetch(`${API_URL}/auth/password/verify-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp }),
+    });
+    
     const data = await response.json();
     
+    // Handle non-2xx responses
     if (!response.ok) {
-      throw new Error(data.message || "Password reset failed");
+      // Return error message from server if available
+      return { 
+        success: false, 
+        error: data.message || `OTP verification failed (${response.status})`
+      };
     }
-
+    
     return { success: true };
   } catch (error) {
     return { 
       success: false, 
-      error: error.message || "Password reset failed" 
+      error: error.message || "Network error" 
     };
   } finally {
     set({ isLoading: false });
   }
 },
 
-logout: async () => {
-  const { token } = get(); // Get current token from state
-  
-  // Add token invalidation
-  try {
-    if (token) {
-      await fetch(`${API_URL}/auth/logout`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
+  resetPassword: async (email, password) => {
+    set({ isLoading: true });
+    try {
+      console.log("[AuthStore] Resetting password for:", email);
+      
+      const response = await fetch(`${API_URL}/auth/password/reset`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
+
+      console.log("[AuthStore] Reset password response status:", response.status);
+      
+      const data = await response.json();
+      console.log("[AuthStore] Reset password response data:", data);
+      
+      if (!response.ok) {
+        return { 
+          success: false, 
+          error: data.message || "Password reset failed" 
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("[AuthStore] Password reset error:", error);
+      return { 
+        success: false, 
+        error: error.message || "Password reset failed" 
+      };
+    } finally {
+      set({ isLoading: false });
     }
-  } catch (error) {
-    console.log("Logout API error:", error);
+  },
+  
+  logout: async () => {
+    const { token } = get(); // Get current token from state
+    
+    // Add token invalidation
+    try {
+      if (token) {
+        await fetch(`${API_URL}/auth/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (error) {
+      console.log("Logout API error:", error);
+    }
+    
+    // Clear local storage
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(USER_KEY);
+    
+    // Reset state
+    set({ user: null, token: null, isLoading: false });
+    
+    // Use Expo Router for redirect
+    router.replace('/(auth)');
+    //  router.replace('/login');
+  },
+
+  // Supervisor detection function
+  isSupervisor: () => {
+    const user = get().user;
+    return user?.role === 'supervisor';
   }
-  
-  // Clear local storage
-  await SecureStore.deleteItemAsync(TOKEN_KEY);
-  await SecureStore.deleteItemAsync(USER_KEY);
-  
-  // Reset state
-  set({ user: null, token: null, isLoading: false });
-  
-  // Use Expo Router for redirect
-  router.replace('/(auth)');
-},
 
 }));
 

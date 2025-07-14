@@ -3,9 +3,11 @@ import useAuthStore from '../store/authStore';
 import { TouchableOpacity, Text, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import COLORS from '../constants/colors'; // Import COLORS
+import { useRouter } from 'expo-router'; // Import useRouter for navigation
 
 export default function LogoutButton() {
     const { logout } = useAuthStore();
+    const router = useRouter(); // Add this
     
     const confirmLogout = () => {
         Alert.alert(
@@ -15,7 +17,10 @@ export default function LogoutButton() {
                 { text: "Cancel", style: "cancel" },
                 { 
                     text: "Logout", 
-                    onPress: () => logout(),
+                    onPress: async () => {
+                        await logout();
+                        router.replace('/(auth)/'); // Add this
+                    },
                     style: "destructive"
                 }
             ]

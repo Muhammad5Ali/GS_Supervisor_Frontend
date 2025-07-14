@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "mobile",
+    "name": "greenSnap",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-     "scheme": "greensnap",
+    "scheme": "greensnap",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -15,20 +15,19 @@
       }
     },
     "android": {
+      "package": "com.mohammedali77.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.CAMERA",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.RECORD_AUDIO"
-      ],
-      "package": "com.mohammedali77.mobile"
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "RECORD_AUDIO",
+         "READ_MEDIA_IMAGES" 
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -59,10 +58,17 @@
           "cameraPermission": "Allow app to access your camera"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "366e0470-3836-49f1-9b78-6ad00c628353"
+      }
     }
   }
 }

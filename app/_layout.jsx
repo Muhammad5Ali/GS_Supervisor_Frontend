@@ -1,12 +1,15 @@
+import 'react-native-gesture-handler'; // Add this at the very top
 import { Slot, SplashScreen } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import useAuthStore from '../store/authStore';
-import { useEffect, useState } from "react";
-import SafeScreen from "../components/SafeScreen";
-import { useFonts } from "expo-font";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, ActivityIndicator } from "react-native";
-import DeepLinkHandler from '../components/DeepLinkHandler';
+import { useEffect, useState } from "react";
+import { useFonts } from "expo-font";
+
+import useAuthStore from '../store/authStore';
+import SafeScreen from "../components/SafeScreen";
+import NavigationHandler from "../components/NavigationHandler";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -14,18 +17,16 @@ export default function RootLayout() {
   const { checkAuth, isCheckingAuth } = useAuthStore();
   const [isReady, setIsReady] = useState(false);
 
-  const [fontLoaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     "JetBrainsMono-Medium": require("../assets/fonts/JetBrainsMono-Medium.ttf"),
   });
 
-  // Hide splash screen when fonts are loaded
   useEffect(() => {
-    if (fontLoaded) {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [fontLoaded]);
+  }, [fontsLoaded]);
 
-  // Initialize authentication state
   useEffect(() => {
     const init = async () => {
       await checkAuth();
@@ -34,8 +35,7 @@ export default function RootLayout() {
     init();
   }, []);
 
-  // Show loading indicator while initializing
-  if (!fontLoaded || !isReady || isCheckingAuth) {
+  if (!fontsLoaded || !isReady || isCheckingAuth) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
@@ -43,14 +43,15 @@ export default function RootLayout() {
     );
   }
 
-  // Main layout with DeepLinkHandler and Slot
   return (
-    <SafeAreaProvider>
-      <SafeScreen>
-        <StatusBar style="auto" />
-        <DeepLinkHandler />
-        <Slot />
-      </SafeScreen>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <SafeScreen>
+          <StatusBar style="auto" />
+          <NavigationHandler />
+          <Slot />
+        </SafeScreen>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -1,17 +1,25 @@
 // FOREST
 const COLORS = {
-    primary: "#4CAF50",
-    textPrimary: "#2e5a2e",
-    textSecondary: "#688f68",
-    textDark: "#1b361b",
-    placeholderText: "#767676",
-    background: "#e8f5e9",
-    cardBackground: "#f1f8f2",
-    inputBackground: "#f4faf5",
-    border: "#c8e6c9",
-    white: "#ffffff",
-    black: "#000000",
-  };
+  primary: "#4CAF50",
+  textPrimary: "#2e5a2e",
+  textSecondary: "#688f68",
+  darkGray: "#616161",
+  lightGray: "#e0e0e0",
+  placeholderText: "#767676",
+  background: "#e8f5e9",
+  lightBackground: "#e8f5e9",
+  cardBackground: "#f1f8f2",
+  inputBackground: "#f4faf5",
+  border: "#c8e6c9",
+  white: "#ffffff",
+  black: "#000000",
+  success: '#4BB543',
+  error: "#d32f2f",
+  warning: "#FFA000",
+  info: "#2196F3",
+};
+
+export default COLORS;
   
   // RETRO
   /*
@@ -64,4 +72,4 @@ const COLORS = {
   };
   */
   
-  export default COLORS;
+  
