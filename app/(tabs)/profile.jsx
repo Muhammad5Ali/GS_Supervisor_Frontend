@@ -9,8 +9,7 @@ import LogoutButton from '../../components/LogoutButton';
 import { Ionicons } from '@expo/vector-icons';
 import COLORS from '../../constants/colors';
 import { Image } from "expo-image"; 
-import { getImageUrl } from '../../lib/utils';
-import { sleep } from '.';
+import { getImageUrl,truncateWords } from '../../lib/utils';
 import Loader from '../../components/Loader';
 
 export default function Profile() {
@@ -22,12 +21,10 @@ export default function Profile() {
   const { token, user } = useAuthStore();
   const router = useRouter();
 
-  // Add subscription to user state for logout redirection
   useEffect(() => {
     const unsubscribe = useAuthStore.subscribe(
       (state) => state.user,
       (currentUser) => {
-        // Redirect to auth screen when user logs out
         if (!currentUser) {
           router.replace({
             pathname: "/(auth)/",
@@ -37,7 +34,6 @@ export default function Profile() {
       }
     );
     
-    // Clean up the subscription when the component unmounts
     return () => unsubscribe();
   }, [router]);
 
@@ -47,12 +43,26 @@ export default function Profile() {
       const response = await fetch(`${API_URL}/report/user`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
+      if (!response.ok) {
+        const text = await response.text();
+        let message = `HTTP ${response.status}`;
+        
+        try {
+          const data = JSON.parse(text);
+          message = data.message || message;
+        } catch {
+          message = text || message;
+        }
+        
+        throw new Error(message);
+      }
+
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Failed to fetch your reported reports");
       setReports(data);
     } catch (error) {
-      console.error("Error fetching data:", error);
-      Alert.alert("Error", "Failed to load profile data. Pull down to refresh.");
+      console.error("Fetch error:", error);
+      Alert.alert("Error", error.message || "Please try again later");
     } finally {
       setIsLoading(false);
     }
@@ -91,36 +101,75 @@ export default function Profile() {
   };
 
   const renderReportsItem = ({ item }) => (
-    <View style={styles.reportsItem}>
-      <Image 
-        source={{ uri: getImageUrl(item.image) }} 
-        style={styles.reportsImage}
-        onError={(e) => console.log("Report image error:", e.nativeEvent.error)}
-      />
-      <View style={styles.reportsInfo}>
-        <Text style={styles.reportsTitle}>{item.title}</Text>
-        <Text style={styles.reportsCaption} numberOfLines={2}>Details: {item.details}</Text>
-        <Text style={styles.reportsLocation} numberOfLines={1}>Address: {item.address}</Text>
-        <Text style={styles.reportsDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+    <TouchableOpacity 
+      onPress={() => router.push({
+        pathname: "/report-details/[id]",
+        params: {
+          id: item._id,
+          from: 'profile'
+        }
+      })}
+      activeOpacity={0.7}
+    >
+      <View style={styles.reportsItem}>
+        {/* Status badge at top-right corner */}
+        <View style={[
+          styles.statusBadge,
+          styles.statusBadgePosition,
+          item.status === 'pending' && { backgroundColor: COLORS.warning },
+          item.status === 'in-progress' && { backgroundColor: COLORS.info },
+          item.status === 'resolved' && { backgroundColor: COLORS.success },
+          item.status === 'permanent-resolved' && { backgroundColor: COLORS.persuccess },
+          item.status === 'rejected' && { backgroundColor: COLORS.error },
+          item.status === 'out-of-scope' && { backgroundColor: COLORS.outOfScope }
+        ]}>
+          <Text style={styles.statusText}>
+            {item.status === 'in-progress' ? 'In Progress' : 
+             item.status === 'permanent-resolved' ? 'Per-Resolved' : 
+             item.status === 'rejected' ? 'Rejected' :
+             item.status}
+          </Text>
+        </View>
+        
+        <Image 
+          source={{ uri: getImageUrl(item.image) }} 
+          style={styles.reportsImage}
+          onError={(e) => console.log("Report image error:", e.nativeEvent.error)}
+        />
+        <View style={styles.reportsInfo}>
+        <Text style={styles.reportsTitle}>
+  {truncateWords(item.title, 3)}
+</Text>
+          <Text style={styles.reportsCaption} numberOfLines={2}>
+            Details: {item.details ? String(item.details) : 'No details provided'}
+          </Text>
+          <Text style={styles.reportsLocation} numberOfLines={1}>Address: {item.address}</Text>
+          <Text style={styles.reportsDate}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+        </View>
+        <TouchableOpacity 
+          style={styles.deleteButton} 
+          onPress={(e) => {
+            e.stopPropagation();
+            confirmDelete(item._id);
+          }}
+        >
+          {deleteReportId === item._id ? (
+            <ActivityIndicator size="small" color={COLORS.primary} />
+          ) : (
+            <Ionicons name="trash-outline" size={20} color={COLORS.primary} />
+          )}
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.deleteButton} onPress={() => confirmDelete(item._id)}>
-        {deleteReportId === item._id ? (
-          <ActivityIndicator size="small" color={COLORS.primary} />
-        ) : (
-          <Ionicons name="trash-outline" size={20} color={COLORS.primary} />
-        )}
-      </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await sleep(500);
+    await new Promise(resolve => setTimeout(resolve, 500));
     await fetchData();
     setRefreshing(false);
   };
 
-  // Redirect if not authenticated
   if (!user) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

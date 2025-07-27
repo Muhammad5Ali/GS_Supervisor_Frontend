@@ -11,6 +11,19 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
   },
+  expiredSessionMessage: {
+  backgroundColor: COLORS.errorBackground,
+  padding: 12,
+  borderRadius: 8,
+  marginBottom: 16,
+  alignSelf: 'center',
+  width: '90%',
+},
+expiredSessionText: {
+  color: COLORS.errorText,
+  textAlign: 'center',
+  fontSize: 14,
+},
   scrollViewStyle: {
     flex: 1,
     backgroundColor: COLORS.background,

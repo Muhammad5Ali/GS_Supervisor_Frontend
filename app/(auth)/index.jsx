@@ -12,17 +12,25 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { isLoading, login, isCheckingAuth, user } = useAuthStore();
+  const { 
+    isLoading, 
+    login, 
+    isCheckingAuth, 
+    user, 
+    sessionExpired, 
+    clearSessionExpired
+  } = useAuthStore();
+  
   const router = useRouter();
   const initialMount = useRef(true);
   
-  // Show messages based on router params
+  // Show messages based on session status
   useEffect(() => {
-    if (router.params?.logout) {
-      Alert.alert("Logged Out", "You've been successfully logged out");
-      router.setParams({ logout: undefined });
+    if (sessionExpired) {
+      Alert.alert("Session Expired", "Your session has expired. Please login again.");
+      clearSessionExpired(); // Use the new clear method
     }
-  }, [router.params]);
+  }, [sessionExpired]);
 
   // Handle initial navigation for already verified/logged in users
   useEffect(() => {
@@ -38,27 +46,24 @@ export default function Login() {
     initialMount.current = false;
   }, [user]);
 
-  // Add this to the handleLogin function:
-const handleLogin = async () => {
-  const result = await login(email, password);
-  
-  if (result.success) {
-    // Check if supervisor
-    if (result.user.role === 'supervisor') {
-      router.replace('/supervisor');
+  const handleLogin = async () => {
+    const result = await login(email, password);
+    
+    if (result.success) {
+      if (result.user.role === 'supervisor') {
+        router.replace('/supervisor');
+      } else {
+        router.replace('/(tabs)');
+      }
+    } else if (result.requiresVerification) {
+      router.push({
+        pathname: "/otp-verification",
+        params: { email }
+      });
     } else {
-      router.replace('/(tabs)');
+      Alert.alert("Error", result.error || "Invalid credentials");
     }
-  } else if (result.requiresVerification) {
-    // Handle OTP verification flow
-    router.push({
-      pathname: "/otp-verification",
-      params: { email }
-    });
-  } else {
-    Alert.alert("Error", result.error || "Invalid credentials");
-  }
-};
+  };
 
   if (isCheckingAuth) {
     return (
@@ -82,6 +87,15 @@ const handleLogin = async () => {
             resizeMode="contain"
           />
         </View>
+
+        {/* Session expired message */}
+        {sessionExpired && (
+          <View style={styles.expiredSessionMessage}>
+            <Text style={styles.expiredSessionText}>
+              Your session has expired. Please login again.
+            </Text>
+          </View>
+        )}
 
         <View style={styles.card}>
           <View style={styles.formContainer}>

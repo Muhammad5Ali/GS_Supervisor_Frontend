@@ -4,7 +4,7 @@
   import { useSafeAreaInsets } from "react-native-safe-area-context";
 
   export default function TabLayout() {
-    const insects=useSafeAreaInsets();
+   const insets=useSafeAreaInsets(); 
     return (
       <Tabs
         screenOptions={{
@@ -16,11 +16,11 @@
           },
           headerShadowVisible:false,
           tabBarStyle: {
-          backgroundColor:COLORS.cardBackground,
-          paddingTop:5,
-          paddingBottom:insects.bottom,
-          height:60+insects.bottom,
-          },
+  backgroundColor:COLORS.cardBackground,
+  paddingTop:5,
+  paddingBottom:insets.bottom, 
+  height:60+insets.bottom,     
+},
 
         }}
       >
@@ -65,15 +65,3 @@
       
     );
   }
-
-
-  // import { View, Text } from 'react-native'
-  // import React from 'react'
-
-  // export default function Layout() {
-  //   return (
-  //     <View>
-  //       <Text>Layout</Text>
-  //     </View>
-  //   )
-  // }

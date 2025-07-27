@@ -7,31 +7,26 @@ export default StyleSheet.create({
     padding: 10,
     backgroundColor: COLORS.background,
   },
-  resolvedBy: {
-  fontSize: 12,
-  color: COLORS.textSecondary,
-  marginTop: 4,
-},
-emptyContainer: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: 20,
-  marginTop: 50,
-},
-emptyText: {
-  fontSize: 18,
-  fontWeight: '600',
-  color: '#555',
-  marginTop: 15,
-  textAlign: 'center',
-},
-emptySubtext: {
-  fontSize: 14,
-  color: '#888',
-  marginTop: 5,
-  textAlign: 'center',
-},
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    marginTop: 50,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#555',
+    marginTop: 15,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 5,
+    textAlign: 'center',
+  },
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 12,
@@ -62,6 +57,7 @@ emptySubtext: {
   resolvedBy: {
     fontSize: 12,
     color: COLORS.textSecondary,
+    marginTop: 4,
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -105,19 +101,7 @@ emptySubtext: {
     fontSize: 12,
     color: COLORS.darkGray,
   },
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 20,
-    color: COLORS.textSecondary,
-    fontSize: 16,
-  },
-   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-   badge: {
+  badge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -139,24 +123,116 @@ emptySubtext: {
     fontWeight: 'bold',
     textTransform: 'capitalize',
   },
-  // Add to your existing dashboard.styles
-cardHeader: {
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  statusText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 12,
+    marginLeft: 4,
+  },
+
+  // New styles for tabs and worker cards
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 3,
+    borderBottomColor: COLORS.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+  },
+  activeText: {
+    color: COLORS.primary,
+    fontWeight: 'bold',
+  },
+  workerCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+ 
+  
+
+
+  statusRejected: {
+  backgroundColor: COLORS.error,
+},
+// Add to existing styles
+badgeRejected: {
+  backgroundColor: COLORS.error,
+},
+actionInfo: {
   flexDirection: 'row',
-  justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: 8,
+  marginTop: 4,
+},
+actionText: {
+  fontSize: 12,
+  color: COLORS.textSecondary,
+  marginLeft: 4,
+},
+dateContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 5,
+},
+// Add these to your existing dashboard.styles.js
+locationContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 6,
+  marginBottom: 4,
+},
+dateContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 4,
+},
+iconSpacing: {
+  marginRight: 6,
 },
 statusBadge: {
-  flexDirection: 'row',
-  alignItems: 'center',
+  position: 'absolute',
+  top: 10,
+  right: 10,
   paddingVertical: 4,
   paddingHorizontal: 10,
   borderRadius: 12,
+  zIndex: 2,
 },
 statusText: {
   color: 'white',
   fontWeight: 'bold',
   fontSize: 12,
-  marginLeft: 4,
 },
 });

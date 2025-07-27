@@ -59,7 +59,7 @@ export default function PendingReports() {
             report={item} 
             onPress={() => router.push(`/supervisor/report-details/${item._id}`)}
             showStatus={true}
-            status="pending" // Changed from statusType to status
+            status={item.status}  // Updated to pass actual status
           />
         )}
         keyExtractor={item => item._id}

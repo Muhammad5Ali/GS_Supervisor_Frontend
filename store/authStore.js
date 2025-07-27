@@ -3,17 +3,19 @@ import * as SecureStore from "expo-secure-store";
 import { API_URL } from "../constants/api";
 import { decodeJwt, isJwtExpired } from "../lib/jwtUtils";
 import { router } from 'expo-router';
-import { logoutRedirect } from '../lib/navigationService';
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY  = "auth_user";
 
-// Create the store without export keyword
 const useAuthStore = create((set, get) => ({
   user: null,
   token: null,
   isLoading: false,
   isCheckingAuth: true,
+  sessionExpired: false,
+
+  setSessionExpired: (expired) => set({ sessionExpired: expired }),
+  clearSessionExpired: () => set({ sessionExpired: false }), // Added this new action
 
   register: async (username, email, password) => {
     set({ isLoading: true });
@@ -72,34 +74,34 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
- resendResetPasswordOTP: async (email) => {
-  set({ isLoading: true });
-  try {
-    const response = await fetch(`${API_URL}/auth/password/forgot`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
+  resendResetPasswordOTP: async (email) => {
+    set({ isLoading: true });
+    try {
+      const response = await fetch(`${API_URL}/auth/password/forgot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return { 
+          success: false, 
+          error: data.message || "Failed to resend OTP" 
+        };
+      }
+      
+      return { success: true };
+    } catch (error) {
       return { 
         success: false, 
-        error: data.message || "Failed to resend OTP" 
+        error: error.message || "Network error" 
       };
+    } finally {
+      set({ isLoading: false });
     }
-    
-    return { success: true };
-  } catch (error) {
-    return { 
-      success: false, 
-      error: error.message || "Network error" 
-    };
-  } finally {
-    set({ isLoading: false });
-  }
-},
+  },
 
   login: async (email, password) => {
     set({ isLoading: true });
@@ -130,7 +132,6 @@ const useAuthStore = create((set, get) => ({
           };
         }
 
-        // Add role with default fallback to 'user'
         const verifiedUser = {
           ...data.user,
           createdAt: data.user.createdAt,
@@ -183,7 +184,8 @@ const useAuthStore = create((set, get) => ({
         console.warn("Token expired - clearing auth data");
         await SecureStore.deleteItemAsync(TOKEN_KEY);
         await SecureStore.deleteItemAsync(USER_KEY);
-        set({ user: null, token: null });
+        set({ user: null, token: null, sessionExpired: true });
+        router.replace('/login');
         return;
       }
 
@@ -200,7 +202,7 @@ const useAuthStore = create((set, get) => ({
 
     } catch (error) {
       console.error("Auth check error:", error);
-      set({ user: null, token: null });
+      set({ user: null, token: null, sessionExpired: true });
     } finally {
       set({ isCheckingAuth: false });
     }
@@ -217,7 +219,6 @@ const useAuthStore = create((set, get) => ({
       
       const data = await response.json();
       
-      // Ensure proper error handling
       if (!response.ok) {
         return { 
           success: false, 
@@ -233,36 +234,34 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
- verifyResetOTP: async (email, otp) => {
-  set({ isLoading: true });
-  try {
-    const response = await fetch(`${API_URL}/auth/password/verify-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp }),
-    });
-    
-    const data = await response.json();
-    
-    // Handle non-2xx responses
-    if (!response.ok) {
-      // Return error message from server if available
+  verifyResetOTP: async (email, otp) => {
+    set({ isLoading: true });
+    try {
+      const response = await fetch(`${API_URL}/auth/password/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return { 
+          success: false, 
+          error: data.message || `OTP verification failed (${response.status})`
+        };
+      }
+      
+      return { success: true };
+    } catch (error) {
       return { 
         success: false, 
-        error: data.message || `OTP verification failed (${response.status})`
+        error: error.message || "Network error" 
       };
+    } finally {
+      set({ isLoading: false });
     }
-    
-    return { success: true };
-  } catch (error) {
-    return { 
-      success: false, 
-      error: error.message || "Network error" 
-    };
-  } finally {
-    set({ isLoading: false });
-  }
-},
+  },
 
   resetPassword: async (email, password) => {
     set({ isLoading: true });
@@ -299,12 +298,12 @@ const useAuthStore = create((set, get) => ({
     }
   },
   
-  logout: async () => {
-    const { token } = get(); // Get current token from state
+  logout: async (expired = false) => {
+    const { token } = get();
     
-    // Add token invalidation
     try {
-      if (token) {
+      // Only call logout API for non-expired tokens
+      if (token && !expired) {
         await fetch(`${API_URL}/auth/logout`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` }
@@ -314,16 +313,21 @@ const useAuthStore = create((set, get) => ({
       console.log("Logout API error:", error);
     }
     
-    // Clear local storage
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     await SecureStore.deleteItemAsync(USER_KEY);
     
-    // Reset state
-    set({ user: null, token: null, isLoading: false });
+    set({ 
+      user: null, 
+      token: null, 
+      isLoading: false, 
+      sessionExpired: expired 
+    });
     
-    // Use Expo Router for redirect
-    router.replace('/(auth)');
-    //  router.replace('/login');
+    if (expired) {
+      router.replace('/login?expired=true');
+    } else {
+      router.replace('/(auth)');
+    }
   },
 
   // Supervisor detection function
@@ -331,8 +335,6 @@ const useAuthStore = create((set, get) => ({
     const user = get().user;
     return user?.role === 'supervisor';
   }
-
 }));
 
-// Export as default
 export default useAuthStore;

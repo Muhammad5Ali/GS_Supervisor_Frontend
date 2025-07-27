@@ -32,4 +32,13 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+resolveButton: {
+  backgroundColor: '#4CAF50', // Green
+},
+rejectButton: {
+  backgroundColor: '#F44336', // Red
+},
+inProgressButton: {
+  backgroundColor: '#2196F3', // Blue
+},
 });

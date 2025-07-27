@@ -1,31 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, ActivityIndicator, Text } from 'react-native';
+import { View, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import useAuthStore from '../../../store/authStore';
 import ReportCard from '../../../components/ReportCard';
 import styles from '../../../assets/styles/dashboard.styles';
 import { API_URL } from '../../../constants/api';
 import { RefreshControl, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
-export default function InProgressReports() {
+export default function RejectedReports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
   const { token } = useAuthStore();
   const router = useRouter();
 
-  const fetchInProgressReports = async () => {
+  const fetchRejectedReports = async () => {
     try {
-      const response = await fetch(`${API_URL}/supervisor/reports/in-progress`, {
+      setError(null);
+      const response = await fetch(`${API_URL}/supervisor/reports/rejected`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       if (!response.ok) throw new Error('Failed to fetch reports');
       
       const data = await response.json();
-      setReports(data.reports);
+      setReports(data.reports || []);
     } catch (error) {
+      setError(error.message);
       Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
@@ -34,19 +37,29 @@ export default function InProgressReports() {
   };
 
   useEffect(() => {
-    fetchInProgressReports();
+    fetchRejectedReports();
   }, []);
 
- const handleRefresh = async () => {
-  setRefreshing(true);
-  await fetchData(); // Remove sleep()
-  setRefreshing(false);
-};
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchRejectedReports();
+  };
 
   if (loading) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchRejectedReports}>
+          <Text style={styles.retryButtonText}>Try Again</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -58,9 +71,9 @@ export default function InProgressReports() {
         renderItem={({ item }) => (
           <ReportCard 
             report={item} 
-            onPress={() => router.push(`/supervisor/resolve-report/${item._id}`)}
+            onPress={() => router.push(`/supervisor/rejected-report-details/${item._id}`)}
             showStatus={true}
-            status="in-progress"
+            status="rejected"
           />
         )}
         keyExtractor={item => item._id}
@@ -72,9 +85,9 @@ export default function InProgressReports() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="build-outline" size={60} color="#ccc" />
-            <Text style={styles.emptyText}>No in-progress reports</Text>
-            <Text style={styles.emptySubtext}>No reports are currently being worked on</Text>
+            <Ionicons name="close-circle-outline" size={60} color="#ccc" />
+            <Text style={styles.emptyText}>No rejected reports</Text>
+            <Text style={styles.emptySubtext}>No reports have been rejected yet</Text>
           </View>
         }
       />

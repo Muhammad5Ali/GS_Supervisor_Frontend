@@ -1,4 +1,4 @@
-import 'react-native-gesture-handler'; // Add this at the very top
+import 'react-native-gesture-handler';
 import { Slot, SplashScreen } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, ActivityIndicator } from "react-native";
 import { useEffect, useState } from "react";
 import { useFonts } from "expo-font";
+import ErrorBoundary from '../components/ErrorBoundary';
 
 import useAuthStore from '../store/authStore';
 import SafeScreen from "../components/SafeScreen";
@@ -14,7 +15,7 @@ import NavigationHandler from "../components/NavigationHandler";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { checkAuth, isCheckingAuth } = useAuthStore();
+  const { checkAuth, isCheckingAuth } = useAuthStore(); // Removed sessionExpired
   const [isReady, setIsReady] = useState(false);
 
   const [fontsLoaded] = useFonts({
@@ -48,8 +49,10 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <SafeScreen>
           <StatusBar style="auto" />
-          <NavigationHandler />
-          <Slot />
+          <ErrorBoundary>
+            <NavigationHandler />
+            <Slot />
+          </ErrorBoundary>
         </SafeScreen>
       </SafeAreaProvider>
     </GestureHandlerRootView>

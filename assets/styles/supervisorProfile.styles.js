@@ -1,0 +1,156 @@
+import { StyleSheet } from 'react-native';
+import COLORS from "../../constants/colors";
+
+export default StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: COLORS.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: 16,
+  },
+  badge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+  },
+  badgeText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginLeft: 4,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  email: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    marginBottom: 12,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  statItem: {
+    alignItems: 'center',
+    backgroundColor: COLORS.lightBackground,
+    borderRadius: 10,
+    padding: 8,
+    minWidth: 80,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  joinDate: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  joinDateText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginLeft: 4,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  actionButton: {
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  actionText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+  },
+  seeAll: {
+    color: COLORS.primary,
+    fontWeight: '500',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    marginTop: 16,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: COLORS.lightGray,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+  },
+});

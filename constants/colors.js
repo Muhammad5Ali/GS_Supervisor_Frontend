@@ -1,6 +1,7 @@
 // FOREST
 const COLORS = {
   primary: "#4CAF50",
+  primaryDark:" #388E3C",
   textPrimary: "#2e5a2e",
   textSecondary: "#688f68",
   darkGray: "#616161",
@@ -17,6 +18,8 @@ const COLORS = {
   error: "#d32f2f",
   warning: "#FFA000",
   info: "#2196F3",
+  outOfScope: '#9E9E9E',
+   persuccess: '#2E7D32', 
 };
 
 export default COLORS;

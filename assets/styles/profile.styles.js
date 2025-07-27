@@ -165,6 +165,88 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
+
+
+reportsHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 5,
+},
+statusBadge: {
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  borderRadius: 12,
+},
+statusText: {
+  color: 'white',
+  fontSize: 12,
+  fontWeight: '500',
+  textTransform: 'capitalize',
+},
+reportsItem: {
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  padding: 15,
+  marginBottom: 15,
+  flexDirection: 'row',
+  alignItems: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 2,
+  position: 'relative',  // Needed for absolute positioning of badge
+},
+
+// Status badge styles
+statusBadge: {
+  paddingHorizontal: 10,
+  paddingVertical: 5,
+  borderRadius: 15,
+  position: 'absolute',
+  top: 10,
+  right: 10,
+  zIndex: 10,
+},
+statusText: {
+  color: 'white',
+  fontSize: 12,
+  fontWeight: '600',
+  textTransform: 'capitalize',
+},
+
+// Other existing styles remain the same
+reportsImage: {
+  width: 80,
+  height: 80,
+  borderRadius: 10,
+},
+reportsInfo: {
+  flex: 1,
+  marginLeft: 15,
+},
+reportsTitle: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: COLORS.text,
+  marginBottom: 4,
+},
+
+
+
+
+rejectionContainer: {
+  flexDirection: 'row',
+  alignItems: 'flex-start',
+  marginVertical: 12,
+  padding: 10,
+  backgroundColor: '#f8d7da',
+  borderRadius: 8,
+  borderLeftWidth: 4,
+  borderLeftColor: COLORS.error,
+},
+
 });
 
 export default styles; 

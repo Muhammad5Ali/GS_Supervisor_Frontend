@@ -36,6 +36,9 @@ const ReportCard = memo(({ item }) => {
       case 'pending': return COLORS.warning;
       case 'in-progress': return COLORS.info;
       case 'resolved': return COLORS.success;
+      case 'permanent-resolved': return COLORS.persuccess;
+      case 'rejected': return COLORS.error;
+      case 'out-of-scope': return COLORS.outOfScope;
       default: return COLORS.gray;
     }
   };
@@ -234,13 +237,13 @@ export default function Home() {
     );
   }
 
-  if (!user) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>User not authenticated. Please login.</Text>
-      </View>
-    );
-  }
+ if (!user) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>User not authenticated. Please login.</Text>
+    </View>
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -276,20 +279,19 @@ export default function Home() {
             </View>
           ) : null
         }
-        ListEmptyComponent={
-          !isFetching && (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="trash-sharp" size={60} color={COLORS.textSecondary} />
-              <Text style={styles.emptyText}>No reports found</Text>
-              <Text style={styles.emptySubtext}>Be the first to share a report</Text>
-              {rateLimited && (
-                <Text style={[styles.emptySubtext, { color: COLORS.warning, marginTop: 10 }]}>
-                  Server is busy, please try again later
-                </Text>
-              )}
-            </View>
-          )
-        }
+      
+ListEmptyComponent={
+  <View style={styles.emptyContainer}>
+    <Ionicons name="trash-sharp" size={60} color={COLORS.textSecondary} />
+    <Text style={styles.emptyText}>No reports found</Text> {/* Already fixed */}
+    <Text style={styles.emptySubtext}>Be the first to share a report</Text> {/* Already fixed */}
+    {rateLimited && (
+      <Text style={[styles.emptySubtext, { color: COLORS.warning, marginTop: 10 }]}>
+        Server is busy, please try again later
+      </Text>
+    )}
+  </View>
+}
         // Performance optimizations
         initialNumToRender={2}
         maxToRenderPerBatch={2}

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, ActivityIndicator, Text } from 'react-native';
+import { View, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import useAuthStore from '../../../store/authStore';
 import ReportCard from '../../../components/ReportCard';
 import styles from '../../../assets/styles/dashboard.styles';
 import { API_URL } from '../../../constants/api';
 import { RefreshControl, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router'; 
 
 export default function ResolvedReports() {
   const [reports, setReports] = useState([]);
@@ -13,6 +14,7 @@ export default function ResolvedReports() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const { token } = useAuthStore();
+  const router = useRouter(); // Create router instance
 
   const fetchResolvedReports = async () => {
     try {
@@ -69,7 +71,7 @@ export default function ResolvedReports() {
         renderItem={({ item }) => (
           <ReportCard 
             report={item} 
-            onPress={() => {}}
+            onPress={() => router.push(`/supervisor/resolved-report-details/${item._id}`)} // Updated
             showStatus={true}
             status="resolved"
           />
