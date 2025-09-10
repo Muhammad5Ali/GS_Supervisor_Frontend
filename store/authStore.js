@@ -109,16 +109,23 @@ const useAuthStore = create((set, get) => ({
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password ,client: "mobile"}),
       });
       const data = await response.json();
 
-      if (!response.ok) {
-        return { 
-          success: false, 
-          error: data.message || 'Login failed' 
-        };
-      }
+     if (!response.ok) {
+  // Handle 403 errors specifically
+  if (response.status === 403) {
+    return { 
+      success: false, 
+      error: data.message || 'Access restricted' 
+    };
+  }
+  return { 
+    success: false, 
+    error: data.message || 'Login failed' 
+  };
+}
 
       if (data.token) {
         const payload = decodeJwt(data.token);

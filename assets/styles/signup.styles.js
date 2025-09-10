@@ -1,4 +1,3 @@
-// styles/signup.styles.js
 import { StyleSheet } from "react-native";
 import COLORS from "../../constants/colors";
 
@@ -37,8 +36,12 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: "center",
   },
-  formContainer: { marginBottom: 16 },
-  inputGroup: { marginBottom: 20 },
+  formContainer: { 
+    marginBottom: 16 
+  },
+  inputGroup: { 
+    marginBottom: 20 
+  },
   label: {
     fontSize: 14,
     marginBottom: 8,
@@ -54,13 +57,21 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     paddingHorizontal: 12,
   },
-  inputIcon: { marginRight: 10 },
+  inputIcon: { 
+    marginRight: 10 
+  },
   input: {
     flex: 1,
     height: 48,
     color: COLORS.textDark,
   },
-  eyeIcon: { padding: 8 },
+  inputError: {
+    borderColor: 'red',
+    borderWidth: 1,
+  },
+  eyeIcon: { 
+    padding: 8 
+  },
   button: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
@@ -73,6 +84,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
+    opacity: 0.7,
   },
   buttonText: {
     color: COLORS.white,
@@ -92,30 +107,40 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: "600",
   },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
+  },
+  hintText: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
   genderContainer: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  marginTop: 8,
-},
-genderOption: {
-  flex: 1,
-  padding: 12,
-  marginHorizontal: 4,
-  borderRadius: 8,
-  alignItems: 'center',
-  backgroundColor: COLORS.lightGray,
-  borderWidth: 1,
-  borderColor: 'transparent',
-},
-genderSelected: {
-  backgroundColor: COLORS.primaryLight,
-  borderColor: COLORS.primary,
-},
-genderText: {
-  color: COLORS.dark,
-  fontWeight: '500',
-},
-
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  genderOption: {
+    flex: 1,
+    padding: 12,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: COLORS.lightGray,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  genderSelected: {
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
+  },
+  genderText: {
+    color: COLORS.dark,
+    fontWeight: '500',
+  },
 });
 
 export default styles;

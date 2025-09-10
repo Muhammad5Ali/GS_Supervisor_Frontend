@@ -11,6 +11,14 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
   },
+  inputError: {
+  borderColor: COLORS.error,
+},
+errorText: {
+  color: COLORS.error,
+  fontSize: 12,
+  marginTop: 4,
+},
   expiredSessionMessage: {
   backgroundColor: COLORS.errorBackground,
   padding: 12,

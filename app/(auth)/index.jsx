@@ -12,6 +12,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const { 
     isLoading, 
     login, 
@@ -37,6 +39,14 @@ export default function Login() {
     const isVerified = user?.verified || user?.accountVerified;
     
     if (initialMount.current && user && isVerified) {
+      if (!["user", "supervisor"].includes(user.role)) {
+        Alert.alert(
+          "Access Denied", 
+          "Please use web dashboard for admin access"
+        );
+        logout(true);
+        return;
+      }
       if (user.role === 'supervisor') {
         router.replace('/supervisor-dashboard');
       } else {
@@ -46,7 +56,27 @@ export default function Login() {
     initialMount.current = false;
   }, [user]);
 
+  // Clear errors when inputs change
+  useEffect(() => {
+    if (email) setEmailError("");
+  }, [email]);
+
+  useEffect(() => {
+    if (password) setPasswordError("");
+  }, [password]);
+
   const handleLogin = async () => {
+    // Basic validation
+    if (!email) {
+      setEmailError("Email is required");
+      return;
+    }
+    
+    if (!password) {
+      setPasswordError("Password is required");
+      return;
+    }
+
     const result = await login(email, password);
     
     if (result.success) {
@@ -61,7 +91,33 @@ export default function Login() {
         params: { email }
       });
     } else {
-      Alert.alert("Error", result.error || "Invalid credentials");
+      // Handle specific error messages from backend
+      if (result.error.includes("No account found")) {
+        setEmailError(result.error);
+      } else if (result.error.includes("verify your account")) {
+        Alert.alert("Account Not Verified", result.error, [
+          {
+            text: "Resend Verification",
+            onPress: () => router.push({
+              pathname: "/otp-verification",
+              params: { email }
+            })
+          },
+          { text: "OK" }
+        ]);
+      } else if (result.error.includes("Incorrect password")) {
+        setPasswordError(result.error);
+        // Show forgot password option
+        Alert.alert("Incorrect Password", "Would you like to reset your password?", [
+          {
+            text: "Reset Password",
+            onPress: () => router.push("/forgot-password")
+          },
+          { text: "Try Again" }
+        ]);
+      } else {
+        Alert.alert("Error", result.error || "An error occurred during login");
+      }
     }
   };
 
@@ -102,7 +158,7 @@ export default function Login() {
             {/* EMAIL */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
-              <View style={styles.inputContainer}>
+              <View style={[styles.inputContainer, emailError ? styles.inputError : null]}>
                 <Ionicons
                   name="mail-outline"
                   size={20}
@@ -119,12 +175,13 @@ export default function Login() {
                   autoCapitalize="none"
                 />
               </View>
+              {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
             </View>
 
             {/* PASSWORD */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
-              <View style={styles.inputContainer}>
+              <View style={[styles.inputContainer, passwordError ? styles.inputError : null]}>
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
@@ -150,6 +207,7 @@ export default function Login() {
                   />
                 </TouchableOpacity>
               </View>
+              {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
             </View>
 
             {/* FORGOT PASSWORD LINK */}
