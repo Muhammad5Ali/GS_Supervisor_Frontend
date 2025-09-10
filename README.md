@@ -1,6 +1,3 @@
-Got it — I updated the README so the backend model references MobileNetV3 Large instead of YOLOv11. Here’s the complete `README.md` content you can copy into your repo:
-
-````markdown
 # GreenSnap AI — Frontend (Expo React Native)
 
 > Mobile frontend for **GreenSnap AI** — a cross-platform Expo app that lets citizens capture geo-tagged waste reports and submit them to the GreenSnap backend (which uses **MobileNetV3 Large** for inference).  
@@ -83,6 +80,30 @@ npx expo start
 npx expo prebuild
 npx expo run:android
 # or use EAS Build for managed app store builds
+
+
+## Quick Start
+
+```bash
+# 1. clone
+git clone https://github.com/MohammadAli-14/GreenSnap-Yolo-frontend.git
+cd GreenSnap-Yolo-frontend
+
+# 2. install dependencies
+npm install
+
+# 3. create .env (see template below)
+
+# 4. run in development
+npx expo start
+
+## Build & Release
+
+### Android (local / debug)
+
+npx expo prebuild
+npx expo run:android
+# or use EAS Build for managed app store builds
 ````
 
 ### iOS (macOS required)
@@ -135,12 +156,4 @@ This project is licensed under the **MIT License** — see the `LICENSE` file in
 
 *Last updated: 2025-09-10*
 
-```
 
-If you want, I can also:
-
-- produce a ready-to-commit `README.md` file and show the exact `git` commands; or  
-- create a minimal `.env.example` template to include in the repo.
-
-Which of those would you like next?
-```
